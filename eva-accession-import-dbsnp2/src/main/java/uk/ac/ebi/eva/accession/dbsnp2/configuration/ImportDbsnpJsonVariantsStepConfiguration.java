@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uk.ac.ebi.eva.accession.core.ClusteredVariant;
 import uk.ac.ebi.eva.accession.core.persistence.DbsnpClusteredVariantEntity;
 
 import static uk.ac.ebi.eva.accession.dbsnp2.configuration.BeanNames.DBSNP_JSON_VARIANT_PROCESSOR;
@@ -45,13 +46,13 @@ public class ImportDbsnpJsonVariantsStepConfiguration {
 
     @Autowired
     @Qualifier(DBSNP_JSON_VARIANT_PROCESSOR)
-    private ItemProcessor<JsonNode, DbsnpClusteredVariantEntity> variantProcessor;
+    private ItemProcessor<JsonNode, ClusteredVariant> variantProcessor;
 
     @Bean(IMPORT_DBSNP_JSON_VARIANTS_STEP)
     public Step importDbsnpJsonVariantsStep(StepBuilderFactory stepBuilderFactory,
                                             SimpleCompletionPolicy chunkSizeCompletionPolicy) {
         return stepBuilderFactory.get(IMPORT_DBSNP_JSON_VARIANTS_STEP)
-                .<JsonNode, DbsnpClusteredVariantEntity>chunk(chunkSizeCompletionPolicy)
+                .<JsonNode, ClusteredVariant>chunk(chunkSizeCompletionPolicy)
                 .reader(variantReader)
                 .processor(variantProcessor)
                 .build();

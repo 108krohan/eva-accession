@@ -25,6 +25,7 @@ import uk.ac.ebi.eva.accession.core.ClusteredVariant;
 import uk.ac.ebi.eva.accession.core.IClusteredVariant;
 import uk.ac.ebi.eva.accession.core.persistence.DbsnpClusteredVariantEntity;
 import uk.ac.ebi.eva.accession.core.summary.ClusteredVariantSummaryFunction;
+import uk.ac.ebi.eva.accession.dbsnp2.model.DbsnpClusteredVariant;
 import uk.ac.ebi.eva.commons.core.models.VariantType;
 
 import java.time.LocalDateTime;
@@ -34,11 +35,12 @@ import java.util.function.Function;
 /**
  * Processes a DbSNP JsonNode to produce a clustered variant entity.
  */
-public class JsonNodeToClusteredVariantProcessor implements ItemProcessor<JsonNode, DbsnpClusteredVariantEntity> {
+public class JsonNodeToClusteredVariantProcessor implements ItemProcessor<JsonNode, DbsnpClusteredVariant> {
 
     private static Logger logger = LoggerFactory.getLogger(JsonNodeToClusteredVariantProcessor.class);
     private Function<IClusteredVariant, String> hashingFunction =
         new ClusteredVariantSummaryFunction().andThen(new SHA1HashingFunction());
+    private String referenceAllele;
 
     public JsonNodeToClusteredVariantProcessor() {
     }
@@ -48,11 +50,11 @@ public class JsonNodeToClusteredVariantProcessor implements ItemProcessor<JsonNo
      * @param jsonRootNode root node of a dbSNP JSON line item
      * @return dbsnpClusteredVariantEntity
      */
-    public DbsnpClusteredVariantEntity process(JsonNode jsonRootNode) {
+    public DbsnpClusteredVariant process(JsonNode jsonRootNode) {
         long accession = jsonRootNode.path("refsnp_id").asLong();
         ClusteredVariant clusteredVariant = parseJsonNodeToClusteredVariant(jsonRootNode);
         String hashedMessage = hashingFunction.apply(clusteredVariant);
-        return new DbsnpClusteredVariantEntity(accession, hashedMessage, clusteredVariant);
+        return new DbsnpClusteredVariant(accession, hashedMessage, clusteredVariant, referenceAllele);
     }
 
     private ClusteredVariant parseJsonNodeToClusteredVariant(JsonNode jsonRootNode) {
@@ -75,6 +77,7 @@ public class JsonNodeToClusteredVariantProcessor implements ItemProcessor<JsonNo
             // DbSNP JSON in 0 base, EVA in 1 base
             // @see <a href=https://api.ncbi.nlm.nih.gov/variation/v0/>DbSNP JSON 2.0 schema specification</a>
             long start = spdi.path("position").asLong() + 1;
+            referenceAllele = spdi.path("deleted_sequence").asText();
             return new ClusteredVariant(assemblyAccession, taxonomyAccession, contig, start,
                                         type, Boolean.FALSE, createdDate);
         }

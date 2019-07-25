@@ -20,6 +20,10 @@ import org.springframework.batch.core.JobParametersBuilder;
 
 public class InputParameters {
 
+    private String fasta;
+
+    private String assemblyReportUrl;
+
     private String input;
 
     private String assembly;
@@ -32,10 +36,28 @@ public class InputParameters {
 
     public JobParameters toJobParameters() {
         return new JobParametersBuilder()
+                .addString("fasta", fasta)
+                .addString("assemblyReportUrl", assemblyReportUrl)
                 .addString("input", input)
                 .addString("assembly", assembly)
                 .addLong("chunkSize", (long) chunkSize, false)
                 .toJobParameters();
+    }
+
+    public String getFasta() {
+        return fasta;
+    }
+
+    public void setFasta(String fasta) {
+        this.fasta = fasta;
+    }
+
+    public String getAssemblyReportUrl() {
+        return assemblyReportUrl;
+    }
+
+    public void setAssemblyReportUrl(String assemblyReportUrl) {
+        this.assemblyReportUrl = assemblyReportUrl;
     }
 
     public String getInput() {
